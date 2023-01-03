@@ -1,0 +1,14 @@
+# Env / python
+__pycache__
+.pynb_checkpoints
+.venv
+.vscode
+
+# data
+data/data.duckdb
+
+# Package
+*.egg-info
+
+# API key
+token.txt
