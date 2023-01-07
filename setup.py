@@ -8,11 +8,13 @@ setup(
     install_requires=[
         'Click',
         'pandas',
-        'duckdb'
+        'duckdb',
+        'streamlit',
+        'altair'
     ],
     entry_points={
         'console_scripts': [
-            'databuild = eloverblik.scripts.eldata:databuild',
+            'eloverblik = eloverblik.scripts.eldata:eloverblik',
         ],
     },
 )

@@ -4,7 +4,7 @@ from eloverblik.eloverblik import DatabaseBuilder
 
 
 @click.group()
-def databuild():
+def eloverblik():
     pass
 
 
@@ -26,5 +26,5 @@ def update():
     click.echo(f"DB updated in {str(datetime.now() - start)}")
 
 
-databuild.add_command(initdb)
-databuild.add_command(update)
+eloverblik.add_command(initdb)
+eloverblik.add_command(update)

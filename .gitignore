@@ -1,14 +1,17 @@
-# Env / python
+# Env / python / misc
 __pycache__
-.pynb_checkpoints
+.ipynb_checkpoints
 .venv
 .vscode
 
-# data
-data/data.duckdb
-
-# Package
+# Dev
+explore
+setup.cfg
+test.ipynb
 *.egg-info
+
+# Data
+data/data.duckdb
 
 # API key
 token.txt
