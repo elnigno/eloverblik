@@ -105,6 +105,16 @@ class DatabaseBuilder(Downloader):
         super().__init__()
         self.data_dir = tools.datapath
 
+    def get_min_date(meterid):
+        with duckdb.connect(str(tools.datapath), read_only=True) as conn:
+            v = conn.execute(
+                f"""
+                select greatest(consumerStartDate, DATE '2019-01-01') as startdate
+                from meterinfo where meteringPointId={meterid}
+                """
+            ).fetchone()[0]
+        return v
+
     def build_consumption_table(self):
 
         conn = duckdb.connect(str(self.data_dir), read_only=False)
@@ -113,18 +123,31 @@ class DatabaseBuilder(Downloader):
 
         # Get consumption data
         for meterid in self.get_meter_ids():
+            mindate = self.get_min_date(meterid)
+            minyear = int(mindate[:4])
             datalist = []
-            for year in range(2019, datetime.today().year):
+
+            for year in range(minyear, datetime.today().year):
+                # Determine when to start querying the API
+                if year == minyear:
+                    startdate = mindate
+                else:
+                    startdate = f"{year}-01-01"
+
                 datalist += [
                     tools.data_to_df(
-                        self.get_consumption(f"{year}-01-01", f"{year+1}-01-01", meterid=meterid)
+                        self.get_consumption(startdate, f"{year+1}-01-01", meterid=meterid)
                     )
                 ]
+            if minyear < datetime.today().year:
+                startdate = f"{datetime.today().year}-01-01"
+            else:
+                startdate = mindate
             datalist += [
                 tools.data_to_df(
                     self.get_consumption(
-                        f"{datetime.today().year}-01-01",
-                        f"{str(date.today() - timedelta(days=1))}",
+                        startdate,
+                        f"{str(date.today())}",
                         meterid=meterid
                     )
                 )
@@ -182,7 +205,7 @@ class DatabaseBuilder(Downloader):
             if date.today() - timedelta(days=1) > lastdate:
                 updatedf = tools.data_to_df(
                     self.get_consumption(
-                        lastdate + timedelta(days=1), f"{str(date.today() - timedelta(days=1))}", meterid=meterid
+                        lastdate + timedelta(days=1), f"{str(date.today())}", meterid=meterid
                     )
                 )
                 updatedf['meterid'] = meterid
