@@ -8,7 +8,7 @@ from datetime import datetime, date, timedelta
 class Downloader:
     """
     Accesses eloverblik's API, storing meterid and data access token for
-    multiple calls. Currently only downloads consumption data. See
+    multiple calls. See
     https://api.eloverblik.dk/customerapi/index.html
     """
 

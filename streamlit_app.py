@@ -52,11 +52,11 @@ an overview of your hourly tariffs and its composition.
 """
 )
 
-st.write("**GRAPH HERE**")
+st.write(eloverblik.dashboard.current_tariffs_graph(meterid))
 
 st.write(
     """
-It can also be useful to understand your hourly consumption patterns. The graph
+It can then be useful to understand your hourly consumption patterns. The graph
 below allows you to see what your average hourly consumption  has been in recent
 years and seasons. You can compare two periods using the selection menus.
 """
@@ -94,4 +94,3 @@ st.write(
         meterid, years1, summer1, winter1, years2, summer2, winter2, width=0.35
     )
 )
-# st.write(years2)

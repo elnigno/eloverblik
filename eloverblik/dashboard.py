@@ -178,3 +178,34 @@ def hourly_consumption_wrapper(
         conn, meterid, years2, summer=summer2, winter=winter2
     )
     return chart_hourly_consumption_bysample(df1, df2, width=width)
+
+
+def current_tariffs_graph(meterid):
+    with duckdb.connect(str(eloverblik.tools.datapath), read_only=True) as conn:
+        df = conn.execute(
+            f"""
+            SELECT *
+            from current_tariffs
+            where meterid={meterid}
+            """
+        ).df().set_index(['meterid', 'hour']).stack().reset_index()
+    df['hour'] = df['hour'].astype(int)
+    df.columns=['meterid', 'hour', 'Tariff type', 'tariff']
+    
+    #Graph
+    bars = alt.Chart(df).mark_bar().encode(
+        x=alt.X('hour:N', axis=alt.Axis(title='')),
+        y=alt.X('tariff', axis=alt.Axis(title='')),
+        color='Tariff type',
+        order=alt.Order(
+            # Sort the segments of the bars by this field
+            'tariff',
+            sort='ascending'
+        )
+        , tooltip='tariff'
+    ).properties(
+        title='Hourly total tariffs (kr.), by type',
+        width=700, height=300
+    )
+
+    return bars
