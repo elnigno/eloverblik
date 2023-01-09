@@ -133,7 +133,7 @@ class DatabaseBuilder(Downloader):
         super().__init__()
         self.data_dir = tools.datapath
 
-    def get_min_date(meterid):
+    def get_min_date(self, meterid):
         """
         Get the minimum date for a meter.
 
@@ -143,7 +143,7 @@ class DatabaseBuilder(Downloader):
         Returns:
             The minimum date as a string in the format "YYYY-MM-DD".
         """
-        with duckdb.connect(str(tools.datapath), read_only=True) as conn:
+        with duckdb.connect(str(self.data_dir), read_only=True) as conn:
             v = conn.execute(
                 f"""
                 select greatest(consumerStartDate, DATE '2019-01-01') as startdate
