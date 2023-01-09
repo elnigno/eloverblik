@@ -133,7 +133,7 @@ class DatabaseBuilder(Downloader):
         super().__init__()
         self.data_dir = tools.datapath
 
-    def get_min_date(self, meterid):
+    def get_min_date(self, meterid, conn=None):
         """
         Get the minimum date for a meter.
 
@@ -143,13 +143,21 @@ class DatabaseBuilder(Downloader):
         Returns:
             The minimum date as a string in the format "YYYY-MM-DD".
         """
-        with duckdb.connect(str(self.data_dir), read_only=True) as conn:
+        if conn is None:
+            with duckdb.connect(str(self.data_dir), read_only=True) as conn:
+                v = conn.execute(
+                    f"""
+                    select greatest(consumerStartDate, DATE '2019-01-01') as startdate
+                    from meterinfo where meteringPointId={meterid}
+                    """
+                ).fetchone()[0]
+        else:
             v = conn.execute(
-                f"""
-                select greatest(consumerStartDate, DATE '2019-01-01') as startdate
-                from meterinfo where meteringPointId={meterid}
-                """
-            ).fetchone()[0]
+                    f"""
+                    select greatest(consumerStartDate, DATE '2019-01-01') as startdate
+                    from meterinfo where meteringPointId={meterid}
+                    """
+                ).fetchone()[0]
         return v
 
     def build_consumption_table(self) -> None:
@@ -166,7 +174,7 @@ class DatabaseBuilder(Downloader):
 
         # Get consumption data
         for meterid in self.get_meter_ids():
-            mindate = self.get_min_date(meterid)
+            mindate = self.get_min_date(meterid, conn=conn)
             minyear = int(mindate[:4])
             datalist = []
 

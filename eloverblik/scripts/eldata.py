@@ -31,9 +31,12 @@ def update():
 @click.command(help='Starts the dashboard, eventually constructing the database')
 def dashboard():
     if datapath.exists() is False:
-        initdb()
+        click.echo('Initializing the database...')
+        start = datetime.now()
+        db = DatabaseBuilder()
+        db.build_dataset()
+        click.echo(f"DB initialized in {str(datetime.now() - start)}")
     args=[]
-    # print(basepath / 'streamlit_app.py')
     _main_run((basepath / 'streamlit_app.py').as_posix() , args)
 
 
