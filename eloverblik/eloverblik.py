@@ -10,21 +10,27 @@ class Downloader:
     Accesses eloverblik's API, storing meterid and data access token for
     multiple calls. See
     https://api.eloverblik.dk/customerapi/index.html
+
+    Attributes:
+        meterids: A list of meterids.
+        data_access_token: A data access token.
     """
 
     def __init__(self) -> None:
+        """Initialize meterids and data_access_token attributes."""
         self.meterids = None
         self.data_access_token = None
         return
 
     @staticmethod
     def read_refresh_token() -> str:
+        """Read a refresh token from a file and return it as a string."""
         with open("token.txt") as f:
             refresh_token = f.readline()
         return refresh_token
 
     def update_data_access_token(self) -> str:
-        """ """
+        """Update the data_access_token attribute by making a request to the API."""
         get_data_access_token_url = "https://api.eloverblik.dk/CustomerApi/api/token"
         headers = tools.get_headers(self.read_refresh_token())
 
@@ -36,7 +42,7 @@ class Downloader:
         return
 
     def get_meter_info(self) -> str:
-        """ """
+        """Get information about the meters and return it as a Pandas DataFrame."""
         if self.data_access_token is None:
             self.update_data_access_token()
 
@@ -51,13 +57,21 @@ class Downloader:
         return df
 
     def get_meter_ids(self):
+        """Get a list of meterids and return it. If not already known, it
+        updates the class with a list of available meterids"""
         if self.meterids is None:
             self.get_meter_info()
 
         return self.meterids
 
     def get_charges(self, meterid=None) -> str:
-        """ """
+        """
+        Get charges for a meter and return the API response.
+
+        Parameters:
+            meterid: The ID of the meter to get charges for. If None, the first
+                meterid in the list will be used.
+        """
         if self.data_access_token is None:
             self.update_data_access_token()
 
@@ -101,11 +115,34 @@ class Downloader:
 
 
 class DatabaseBuilder(Downloader):
+    """
+    A class for building and updating a database with meter data.
+
+    This class inherits from the Downloader class, which provides methods for
+    accessing eloverblik's API. The DatabaseBuilder class uses these methods to
+    build and update a database with meter data, including consumption data and
+    information about current tariffs.
+
+    Attributes:
+        data_dir: The directory where the database is stored.
+    """
     def __init__(self) -> None:
+        """
+        Initialize the DatabaseBuilder and set the data_dir attribute.
+        """
         super().__init__()
         self.data_dir = tools.datapath
 
     def get_min_date(meterid):
+        """
+        Get the minimum date for a meter.
+
+        Parameters:
+            meterid: The ID of the meter.
+
+        Returns:
+            The minimum date as a string in the format "YYYY-MM-DD".
+        """
         with duckdb.connect(str(tools.datapath), read_only=True) as conn:
             v = conn.execute(
                 f"""
@@ -115,7 +152,13 @@ class DatabaseBuilder(Downloader):
             ).fetchone()[0]
         return v
 
-    def build_consumption_table(self):
+    def build_consumption_table(self) -> None:
+        """
+        Build a table with consumption data in the database.
+
+        This method gets consumption data for each meter in the list of meterids,
+        and stores the data in a table called "consumption" in the database.
+        """
 
         conn = duckdb.connect(str(self.data_dir), read_only=False)
         conn.execute("DROP TABLE IF EXISTS consumption;")
@@ -163,6 +206,10 @@ class DatabaseBuilder(Downloader):
 
     def build_tariffs_dataset(self) -> None:
         """
+        Build a table with current tariff data in the database.
+
+        This method gets the current tariffs for each meter in the list of meterids,
+        and stores the data in a table called "current_tariffs" in the database.
         """
         tdata = []
         for meterid in self.get_meter_ids():
@@ -181,6 +228,12 @@ class DatabaseBuilder(Downloader):
         return
 
     def build_dataset(self) -> None:
+        """
+        Build the database with all data.
+
+        This method gets meter information, consumption data, and current tariff data
+        for each meter in the list of meterids, and stores the data in the database.
+        """
         meter_info = self.get_meter_info()
         conn = duckdb.connect(str(self.data_dir), read_only=False)
         conn.execute("DROP TABLE IF EXISTS meterinfo;")
@@ -195,6 +248,15 @@ class DatabaseBuilder(Downloader):
         return
 
     def update_dataset(self) -> pd.DataFrame:
+        """
+        Update the database with new data.
+
+        This method updates the "consumption" table in the database with new
+        consumption data for each meter in the list of meterids.
+
+        Returns:
+            A DataFrame with the new data that was added to the database.
+        """
         conn = duckdb.connect(str(self.data_dir), read_only=False)
         for meterid in self.get_meter_ids():
             lastdate = (

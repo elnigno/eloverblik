@@ -3,7 +3,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from pathlib import Path
 
-datapath = Path(__file__).parent.parent / "data/data.duckdb"
+basepath = Path(__file__).parent.parent
+datapath = basepath / "data/data.duckdb"
 
 
 def get_headers(token):
