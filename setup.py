@@ -10,7 +10,8 @@ setup(
         'pandas',
         'duckdb',
         'streamlit',
-        'altair'
+        'altair',
+        'matplotlib'
     ],
     entry_points={
         'console_scripts': [
