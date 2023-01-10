@@ -6,9 +6,15 @@
 
 I recommend to create a virtual environment where to install the package. In Linux
 
-```source
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install .
+```
+
+```powershell
+python3 -m venv .venv
+.\.venv\Scripts\activate
 pip install .
 ```
 
@@ -18,7 +24,7 @@ Next, set up the API key in [eloverblik](https://eloverblik.dk/), and save it in
 
 In the activated virtual environment with `eloverblik` installed, type in the command line
 
-```source
+```python
 eloverblik dashboard
 ```
 
